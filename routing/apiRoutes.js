@@ -1,52 +1,44 @@
-var bodyParser = require('body-parser');
-var path = require('path');
+//a POST routes /api/friends - this handles incoming survey results. will also used to handle the compatibility logic
+//Load Data
+var friendList = require('../app/data/friends');
 
-// ===============================================================================
-// LOAD DATA
-// Below is the link to friends table.
-// ===============================================================================
+module.exports = function(app){
+  //a GET route that displays JSON of all possible friends
+  app.get('/api/friends', function(req,res){
+    res.json(friendList);
+  });
 
-var friendsTable = require('../data/friends.js');
+  app.post('/api/friends', function(req,res){
+    //grabs the new friend's scores to compare with friends in friendList array
+    var newFriendScores = req.body.scores;
+    var scoresArray = [];
+    var friendCount = 0;
+    var bestMatch = 0;
 
-// ===============================================================================
-// ROUTING
-// ===============================================================================
+    //runs through all current friends in list
+    for(var i=0; i<friendList.length; i++){
+      var scoresDiff = 0;
+      //run through scores to compare friends
+      for(var j=0; j<newFriendScores.length; j++){
+        scoresDiff += (Math.abs(parseInt(friendList[i].scores[j]) - parseInt(newFriendScores[j])));
+      }
 
-module.exports = function(app) {
-    // API GET Requests
-    // Below code handles when users "visit" a page.
-    // In each of the below cases when a user visits a link
-    // ---------------------------------------------------------------------------
+      //push results into scoresArray
+      scoresArray.push(scoresDiff);
+    }
 
-    app.get('/api/friends', function(request, result) {
-        result.json(friendsTable);
-    });
+    //after all friends are compared, find best match
+    for(var i=0; i<scoresArray.length; i++){
+      if(scoresArray[i] <= scoresArray[bestMatch]){
+        bestMatch = i;
+      }
+    }
 
-    app.post("/api/friends", function(request, result) {
-        var you = request.body;
-        var newFriend = -1;
-        var newFriendScore = 100;
-        var currentFriendScore = 0;
-        // Loop thru all friends in the friends table to identify the friend have the lowest score difference and then return friend so modal opens showing the friend.
-        for (i = 0; i < friendsTable.length; i++) {
+    //return bestMatch data
+    var bff = friendList[bestMatch];
+    res.json(bff);
 
-            if (you.sex != friendsTable[i].sex) {
-                for (j = 0; j < you.scores.length; j++) {
-
-                    currentFriendScore = currentFriendScore + Math.abs(friendsTable[i].scores[j] - you.scores[j]);
-                }
-                if (currentFriendScore <= newFriendScore) {
-                    newFriend = i;
-                    newFriendScore = currentFriendScore;
-                }
-                currentFriendScore = 0;
-            }
-        }
-        friendsTable.push(you);
-        newFriendDetails = friendsTable[newFriend];
-        result.json(newFriendDetails);
-
-    });
-
-
+    //pushes new submission into the friendsList array
+    friendList.push(req.body);
+  });
 };

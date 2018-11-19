@@ -10,10 +10,10 @@ module.exports = function (app) {
 	// In each of the below cases the user is shown an HTML page of content
 	// ---------------------------------------------------------------------------
 	app.get('/', function (request, result) {
-		result.sendFile(path.join(__dirname + '/../public/home.html'));
+		result.sendFile(path.join(__dirname, '/../public/home.html'));
 	});
 
 	app.get('/survey', function (request, result) {
-		result.sendFile(path.join(__dirname + '/../public/survey.html'));
+		result.sendFile(path.join(__dirname, '/../public/survey.html'));
 	});	
 };
